@@ -3,6 +3,7 @@ package com.github.pedrobaachini.demospringbatch
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.launch.support.RunIdIncrementer
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -15,7 +16,7 @@ class DemoSpringBatchApplication(
     private val stepBuilderFactory: StepBuilderFactory
 ) {
     @Bean
-    fun job() = jobBuilderFactory.get("job")
+    fun job() = jobBuilderFactory.get("imprimeOlaJob")
         .start(
             stepBuilderFactory.get("step")
                 .tasklet { _, _ ->
@@ -23,6 +24,7 @@ class DemoSpringBatchApplication(
                     RepeatStatus.FINISHED
                 }.build()
         )
+        .incrementer(RunIdIncrementer())
         .build()
 }
 
