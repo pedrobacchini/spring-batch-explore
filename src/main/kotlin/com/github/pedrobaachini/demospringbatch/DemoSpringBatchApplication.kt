@@ -14,27 +14,7 @@ import org.springframework.context.annotation.Bean
 
 @SpringBootApplication
 @EnableBatchProcessing
-class DemoSpringBatchApplication(
-    private val jobBuilderFactory: JobBuilderFactory,
-    private val stepBuilderFactory: StepBuilderFactory
-) {
-    @Bean
-    fun job() = jobBuilderFactory.get("imprimeOlaJob")
-        .start(
-            stepBuilderFactory.get("step")
-                .tasklet(impimieOlaTasklet(null))
-                .build()
-        )
-        .incrementer(RunIdIncrementer())
-        .build()
-
-    @Bean
-    @StepScope
-    fun impimieOlaTasklet(@Value("#{jobParameters['nome']}") nome: String?) = Tasklet { _, _ ->
-        println("Olá, $nome")
-        RepeatStatus.FINISHED
-    }
-}
+class DemoSpringBatchApplication
 
 fun main(args: Array<String>) {
     runApplication<DemoSpringBatchApplication>(*args)
