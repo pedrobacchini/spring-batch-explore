@@ -8,7 +8,6 @@ import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 
 //@Configuration
 class FirstJobConfig(
@@ -16,10 +15,10 @@ class FirstJobConfig(
     private val stepBuilderFactory: StepBuilderFactory
 ) {
     @Bean
-    fun job() = jobBuilderFactory.get("imprimeOlaJob")
+    fun job() = jobBuilderFactory.get("printHelloJob")
         .start(
             stepBuilderFactory.get("step")
-                .tasklet(impimieOlaTasklet(null))
+                .tasklet(printHelloTasklet(null))
                 .build()
         )
         .incrementer(RunIdIncrementer())
@@ -27,8 +26,8 @@ class FirstJobConfig(
 
     @Bean
     @StepScope
-    fun impimieOlaTasklet(@Value("#{jobParameters['nome']}") nome: String?) = Tasklet { _, _ ->
-        println("Olá, $nome")
+    fun printHelloTasklet(@Value("#{jobParameters['name']}") name: String?) = Tasklet { _, _ ->
+        println("Hello, $name")
         RepeatStatus.FINISHED
     }
 }
