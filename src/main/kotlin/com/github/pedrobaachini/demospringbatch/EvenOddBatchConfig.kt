@@ -25,6 +25,7 @@ class EvenOddBatchConfig(
         .reader(countToTenReader())
         .processor(evenOrOddProcessor())
         .writer(printWriter())
+
         .build()
 
     private fun countToTenReader() = IteratorItemReader((1..10).iterator())
