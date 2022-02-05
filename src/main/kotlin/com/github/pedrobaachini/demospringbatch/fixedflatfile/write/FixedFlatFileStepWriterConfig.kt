@@ -10,4 +10,9 @@ class FixedFlatFileStepWriterConfig {
 
     @Bean
     fun fixedFlatFileStepWriter() = ItemWriter<Client> { items -> items.forEach(::println) }
+//    fun fixedFlatFileStepWriter() = ItemWriter<Client> { items ->
+//        items.forEach {
+//            if (it.name.equals("Maria")) throw Exception() else println(it)
+//        }
+//    }
 }
