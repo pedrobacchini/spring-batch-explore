@@ -5,6 +5,8 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepScope
 import org.springframework.batch.core.launch.support.RunIdIncrementer
+import org.springframework.batch.item.ExecutionContext
+import org.springframework.batch.item.ItemStreamReader
 import org.springframework.batch.item.ItemWriter
 import org.springframework.batch.item.file.FlatFileItemReader
 import org.springframework.batch.item.file.LineMapper
@@ -28,7 +30,8 @@ class MultipleFormatsBatchConfig(
         var name: String? = null,
         var lastName: String? = null,
         var age: String? = null,
-        var email: String? = null
+        var email: String? = null,
+        var transactions: MutableList<Transactional> = mutableListOf()
     )
 
     data class Transactional(
@@ -50,7 +53,7 @@ class MultipleFormatsBatchConfig(
     ): Step? {
         return stepBuilderFactory.get("multipleFormatsStep")
             .chunk<Any, Any>(1)
-            .reader(multipleFormatsReader)
+            .reader(ClientsWithTransactionsReader(multipleFormatsReader))
             .writer(multipleFormatsWriter)
             .build()
     }
@@ -92,4 +95,44 @@ class MultipleFormatsBatchConfig(
         "0*" to BeanWrapperFieldSetMapper<Client>().apply { this.setTargetType(Client::class.java) },
         "1*" to BeanWrapperFieldSetMapper<Transactional>().apply { this.setTargetType(Transactional::class.java) }
     ) as Map<String, FieldSetMapper<Any>>
+
+
+    class ClientsWithTransactionsReader(
+        private val delegate: ItemStreamReader<Any>
+    ) : ItemStreamReader<Client> {
+
+        var currentObject: Any? = null
+
+        override fun open(executionContext: ExecutionContext) {
+            delegate.open(executionContext)
+        }
+
+        override fun update(executionContext: ExecutionContext) {
+            delegate.update(executionContext)
+        }
+
+        override fun close() {
+            delegate.close()
+        }
+
+        override fun read(): Client? {
+            if (currentObject == null) currentObject = delegate.read()
+
+            val client = currentObject as Client?
+            currentObject = null
+
+            if(client != null) {
+                while (peek() is Transactional) {
+                    client.transactions.add(currentObject as Transactional)
+                }
+            }
+            return client
+        }
+
+        private fun peek(): Any? {
+            currentObject = delegate.read()
+            return currentObject
+        }
+
+    }
 }
