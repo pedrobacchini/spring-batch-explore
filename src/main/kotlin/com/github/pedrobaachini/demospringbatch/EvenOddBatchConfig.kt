@@ -1,4 +1,4 @@
-package com.github.pedrobaachini.demospringbatch.evenodd
+package com.github.pedrobaachini.demospringbatch
 
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory

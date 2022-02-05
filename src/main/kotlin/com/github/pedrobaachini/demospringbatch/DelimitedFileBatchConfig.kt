@@ -1,4 +1,4 @@
-package com.github.pedrobaachini.demospringbatch.fixedflatfile.job
+package com.github.pedrobaachini.demospringbatch
 
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -7,13 +7,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class FixedFlatFileJobConfig(
+class DelimitedFileBatchConfig(
     private val jobBuilderFactory: JobBuilderFactory
 ) {
 
     @Bean
-    fun fixedFlatFileJob(readFixedFlatFileStep: Step) = jobBuilderFactory.get("fixedFlatFileJob")
-        .start(readFixedFlatFileStep)
+    fun delimitedFileJob(delimitedFileStep: Step) = jobBuilderFactory.get("delimitedFileJob")
+        .start(delimitedFileStep)
         .incrementer(RunIdIncrementer())
         .build()
 }
