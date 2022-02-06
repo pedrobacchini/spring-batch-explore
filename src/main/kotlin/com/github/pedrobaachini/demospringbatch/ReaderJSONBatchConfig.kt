@@ -12,7 +12,7 @@ import org.springframework.core.io.FileSystemResource
 import java.util.function.Function
 
 
-@Configuration
+//@Configuration
 class ReaderJSONBatchConfig(
     private val jobBuilderFactory: JobBuilderFactory,
     private val stepBuilderFactory: StepBuilderFactory
