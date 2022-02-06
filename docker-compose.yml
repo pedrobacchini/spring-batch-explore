@@ -5,11 +5,12 @@ services:
     image: mysql:5.7
     environment:
       MYSQL_ROOT_PASSWORD: "MySql2022!"
-      MYSQL_DATABASE: "spring_batch"
     ports:
       - "3306:3306"
     networks:
       - mysql-compose-network
+    volumes:
+      - ./mysqlScripts:/docker-entrypoint-initdb.d
 
   adminer:
     image: adminer
