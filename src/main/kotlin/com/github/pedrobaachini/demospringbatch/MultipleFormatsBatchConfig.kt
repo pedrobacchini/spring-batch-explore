@@ -10,7 +10,10 @@ import org.springframework.batch.item.ItemStreamReader
 import org.springframework.batch.item.ItemWriter
 import org.springframework.batch.item.file.FlatFileItemReader
 import org.springframework.batch.item.file.LineMapper
+import org.springframework.batch.item.file.MultiResourceItemReader
+import org.springframework.batch.item.file.ResourceAwareItemReaderItemStream
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder
+import org.springframework.batch.item.file.builder.MultiResourceItemReaderBuilder
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper
 import org.springframework.batch.item.file.mapping.FieldSetMapper
 import org.springframework.batch.item.file.mapping.PatternMatchingCompositeLineMapper
@@ -48,12 +51,12 @@ class MultipleFormatsBatchConfig(
 
     @Bean
     fun multipleFormatsStep(
-        multipleFormatsReader: FlatFileItemReader<Any>,
+        multipleFilesReader: MultiResourceItemReader<Any>,
         multipleFormatsWriter: ItemWriter<Any>
     ): Step? {
         return stepBuilderFactory.get("multipleFormatsStep")
             .chunk<Any, Any>(1)
-            .reader(ClientsWithTransactionsReader(multipleFormatsReader))
+            .reader(multipleFilesReader)
             .writer(multipleFormatsWriter)
             .build()
     }
@@ -68,6 +71,19 @@ class MultipleFormatsBatchConfig(
             .name("multipleFormatsReader")
             .resource(file)
             .lineMapper(lineMapper)
+            .build()
+    }
+
+    @Bean
+    @StepScope
+    fun multipleFilesReader(
+        @Value("#{jobParameters['files']}") vararg files: Resource,
+        multipleFormatsReader: FlatFileItemReader<Any>
+    ): MultiResourceItemReader<*> {
+        return MultiResourceItemReaderBuilder<Any>()
+            .name("multipleFilesReader")
+            .resources(*files)
+            .delegate(ClientsWithTransactionsReader(multipleFormatsReader))
             .build()
     }
 
@@ -98,8 +114,8 @@ class MultipleFormatsBatchConfig(
 
 
     class ClientsWithTransactionsReader(
-        private val delegate: ItemStreamReader<Any>
-    ) : ItemStreamReader<Client> {
+        private val delegate: FlatFileItemReader<Any>
+    ) : ItemStreamReader<Client>, ResourceAwareItemReaderItemStream<Client> {
 
         var currentObject: Any? = null
 
@@ -132,6 +148,10 @@ class MultipleFormatsBatchConfig(
         private fun peek(): Any? {
             currentObject = delegate.read()
             return currentObject
+        }
+
+        override fun setResource(resource: Resource) {
+            delegate.setResource(resource)
         }
 
     }
