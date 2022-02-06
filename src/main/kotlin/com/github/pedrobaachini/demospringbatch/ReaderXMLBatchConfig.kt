@@ -16,7 +16,7 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller
 import java.math.BigDecimal
 import javax.xml.bind.annotation.XmlRootElement
 
-@Configuration
+//@Configuration
 class ReaderXMLBatchConfig(
     private val jobBuilderFactory: JobBuilderFactory,
     private val stepBuilderFactory: StepBuilderFactory
