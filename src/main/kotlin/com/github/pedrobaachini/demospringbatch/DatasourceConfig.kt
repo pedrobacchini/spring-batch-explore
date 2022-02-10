@@ -10,12 +10,14 @@ import javax.sql.DataSource
 @Configuration
 class DatasourceConfig {
 
-    @Bean
+//    @Bean
     @Primary
+    @Bean(name = ["springDataSource"])
     @ConfigurationProperties(prefix = "spring.datasource")
     fun springDataSource(): DataSource = DataSourceBuilder.create().build()
 
-    @Bean
+//    @Bean
+    @Bean(name = ["appDataSource"])
     @ConfigurationProperties(prefix = "app.datasource")
     fun appDataSource(): DataSource = DataSourceBuilder.create().build()
 }

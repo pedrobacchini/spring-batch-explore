@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.jdbc.core.BeanPropertyRowMapper
 import javax.sql.DataSource
 
-@Configuration
+//@Configuration
 class JdbcCursorReaderConfig(
     private val jobBuilderFactory: JobBuilderFactory,
     private val stepBuilderFactory: StepBuilderFactory
@@ -24,14 +24,14 @@ class JdbcCursorReaderConfig(
     )
 
     @Bean
-    fun JdbcCursorReaderJob(@Qualifier("appDataSource") appDataSource: DataSource) =
-        jobBuilderFactory.get("JdbcCursorReaderConfig")
+    fun jdbcCursorReaderJob(@Qualifier("appDataSource") appDataSource: DataSource) =
+        jobBuilderFactory.get("jdbcCursorReaderJob")
             .start(
-                stepBuilderFactory.get("JdbcCursorReaderStep")
+                stepBuilderFactory.get("jdbcCursorReaderStep")
                     .chunk<Client, Client>(1)
                     .reader(
                         JdbcCursorItemReaderBuilder<Client>()
-                            .name("JdbcCursorReader")
+                            .name("jdbcCursorReader")
                             .dataSource(appDataSource)
                             .sql("select * from client")
                             .rowMapper(BeanPropertyRowMapper(Client::class.java))
