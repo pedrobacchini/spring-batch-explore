@@ -7,13 +7,16 @@ import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuild
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.jdbc.UncategorizedSQLException
 import org.springframework.jdbc.core.BeanPropertyRowMapper
+import java.sql.SQLException
 import javax.sql.DataSource
 
-//@Configuration
+@Configuration
 class JdbcCursorReaderConfig(
     private val jobBuilderFactory: JobBuilderFactory,
-    private val stepBuilderFactory: StepBuilderFactory
+    private val stepBuilderFactory: StepBuilderFactory,
+    @Qualifier("appDataSource") val appDataSource: DataSource
 ) {
 
     data class Client(
@@ -24,23 +27,45 @@ class JdbcCursorReaderConfig(
     )
 
     @Bean
-    fun jdbcCursorReaderJob(@Qualifier("appDataSource") appDataSource: DataSource) =
+    fun jdbcCursorReaderJob() =
         jobBuilderFactory.get("jdbcCursorReaderJob")
             .start(
                 stepBuilderFactory.get("jdbcCursorReaderStep")
-                    .chunk<Client, Client>(1)
-                    .reader(
-                        JdbcCursorItemReaderBuilder<Client>()
-                            .name("jdbcCursorReader")
-                            .dataSource(appDataSource)
-                            .sql("select * from client")
-                            .rowMapper(BeanPropertyRowMapper(Client::class.java))
-                            .build()
-                    )
+                    .chunk<Client, Client>(11)
+                    .reader(skipExceptionReader())
                     .writer { items -> items.forEach(::println) }
+                    .faultTolerant()
+                    .skip(UncategorizedSQLException::class.java)
+                    .skipLimit(2)
                     .build()
             )
             .incrementer(RunIdIncrementer())
             .build()
+
+    @Bean
+    fun jdbcCursorReader() = JdbcCursorItemReaderBuilder<Client>()
+        .name("jdbcCursorReader")
+        .dataSource(appDataSource)
+        .sql("select * from client")
+        .rowMapper(BeanPropertyRowMapper(Client::class.java))
+        .build()
+
+    @Bean
+    fun skipExceptionReader() = JdbcCursorItemReaderBuilder<Client>()
+        .name("skipExceptionReader")
+        .dataSource(appDataSource)
+        .sql("select * from client")
+        .rowMapper { rs, _ ->
+            if (rs.row == 11)
+                throw SQLException("Finish execution - invalid client ${rs.getString("email")}")
+            else
+                Client().apply {
+                    name = rs.getString("name")
+                    lastName = rs.getString("lastName")
+                    age = rs.getString("age")
+                    email = rs.getString("email")
+                }
+        }
+        .build()
 
 }
